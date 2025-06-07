@@ -818,8 +818,9 @@ func (cfg *NftablesConfigurator) addIstioNatTableRules() (*knftables.Transaction
 		return tx, nil
 	}
 
+	rules := cfg.ruleBuilder.Rules[constants.IstioProxyNatTable]
 	// If there are no rules to be added skip creating the associated tables and chains.
-	if len(cfg.ruleBuilder.Rules[constants.IstioProxyNatTable]) == 0 {
+	if len(rules) == 0 {
 		return tx, nil
 	}
 
@@ -828,39 +829,48 @@ func (cfg *NftablesConfigurator) addIstioNatTableRules() (*knftables.Transaction
 	// Flush the table to remove all existing rules before applying new ones.
 	tx.Flush(&knftables.Table{})
 
-	// Ensure that the chains exist
-	tx.Add(&knftables.Chain{
-		Name:     constants.PreroutingChain,
-		Type:     knftables.PtrTo(knftables.NATType),
-		Hook:     knftables.PtrTo(knftables.PreroutingHook),
-		Priority: knftables.PtrTo(knftables.DNATPriority),
-	})
-	tx.Add(&knftables.Chain{
-		Name:     constants.OutputChain,
-		Type:     knftables.PtrTo(knftables.NATType),
-		Hook:     knftables.PtrTo(knftables.OutputHook),
-		Priority: knftables.PtrTo(knftables.DNATPriority),
-	})
-	tx.Add(&knftables.Chain{
-		Name: constants.IstioInboundChain,
-	})
-	tx.Add(&knftables.Chain{
-		Name: constants.IstioRedirectChain,
-	})
-	tx.Add(&knftables.Chain{
-		Name: constants.IstioInRedirectChain,
-	})
-	tx.Add(&knftables.Chain{
-		Name: constants.IstioOutputChain,
-	})
-	tx.Add(&knftables.Chain{
-		Name: constants.IstioOutputDNSChain,
-	})
+	// Determine which chains have rules and create them.
+	chainsWithRules := make(map[string]bool)
+	for _, rule := range rules {
+		chainsWithRules[rule.Chain] = true
+	}
+
+	if chainsWithRules[constants.PreroutingChain] {
+		tx.Add(&knftables.Chain{
+			Name:     constants.PreroutingChain,
+			Type:     knftables.PtrTo(knftables.NATType),
+			Hook:     knftables.PtrTo(knftables.PreroutingHook),
+			Priority: knftables.PtrTo(knftables.DNATPriority),
+		})
+	}
+	if chainsWithRules[constants.OutputChain] {
+		tx.Add(&knftables.Chain{
+			Name:     constants.OutputChain,
+			Type:     knftables.PtrTo(knftables.NATType),
+			Hook:     knftables.PtrTo(knftables.OutputHook),
+			Priority: knftables.PtrTo(knftables.DNATPriority),
+		})
+	}
+	if chainsWithRules[constants.IstioInboundChain] {
+		tx.Add(&knftables.Chain{Name: constants.IstioInboundChain})
+	}
+	if chainsWithRules[constants.IstioRedirectChain] {
+		tx.Add(&knftables.Chain{Name: constants.IstioRedirectChain})
+	}
+	if chainsWithRules[constants.IstioInRedirectChain] {
+		tx.Add(&knftables.Chain{Name: constants.IstioInRedirectChain})
+	}
+	if chainsWithRules[constants.IstioOutputChain] {
+		tx.Add(&knftables.Chain{Name: constants.IstioOutputChain})
+	}
+	if chainsWithRules[constants.IstioOutputDNSChain] {
+		tx.Add(&knftables.Chain{Name: constants.IstioOutputDNSChain})
+	}
 
 	// we use chainRuleCount to keep track of how many rules have been added to each chain.
 	chainRuleCount := make(map[string]int)
 
-	for _, rule := range cfg.ruleBuilder.Rules[constants.IstioProxyNatTable] {
+	for _, rule := range rules {
 		chain := rule.Chain
 
 		// In IPtables, inserting a rule at position 1 means it gets placed at the head of the chain. In contrast,
@@ -900,8 +910,9 @@ func (cfg *NftablesConfigurator) addIstioMangleTableRules() (*knftables.Transact
 		return tx, nil
 	}
 
+	rules := cfg.ruleBuilder.Rules[constants.IstioProxyMangleTable]
 	// If there are no rules to be added skip creating the associated tables and chains.
-	if len(cfg.ruleBuilder.Rules[constants.IstioProxyMangleTable]) == 0 {
+	if len(rules) == 0 {
 		return tx, nil
 	}
 
@@ -910,36 +921,45 @@ func (cfg *NftablesConfigurator) addIstioMangleTableRules() (*knftables.Transact
 	// Flush the table to remove all existing rules before applying new ones.
 	tx.Flush(&knftables.Table{})
 
-	// Ensure that the chains exist
-	tx.Add(&knftables.Chain{
-		Name:     constants.PreroutingChain,
-		Type:     knftables.PtrTo(knftables.FilterType),
-		Hook:     knftables.PtrTo(knftables.PreroutingHook),
-		Priority: knftables.PtrTo(knftables.ManglePriority),
-	})
-	tx.Add(&knftables.Chain{
-		Name:     constants.OutputChain,
-		Type:     knftables.PtrTo(knftables.FilterType),
-		Hook:     knftables.PtrTo(knftables.OutputHook),
-		Priority: knftables.PtrTo(knftables.ManglePriority),
-	})
-	tx.Add(&knftables.Chain{
-		Name: constants.IstioDivertChain,
-	})
-	tx.Add(&knftables.Chain{
-		Name: constants.IstioTproxyChain,
-	})
-	tx.Add(&knftables.Chain{
-		Name: constants.IstioInboundChain,
-	})
-	tx.Add(&knftables.Chain{
-		Name: constants.IstioDropChain,
-	})
+	// Determine which chains have rules and create them.
+	chainsWithRules := make(map[string]bool)
+	for _, rule := range rules {
+		chainsWithRules[rule.Chain] = true
+	}
+
+	if chainsWithRules[constants.PreroutingChain] {
+		tx.Add(&knftables.Chain{
+			Name:     constants.PreroutingChain,
+			Type:     knftables.PtrTo(knftables.FilterType),
+			Hook:     knftables.PtrTo(knftables.PreroutingHook),
+			Priority: knftables.PtrTo(knftables.ManglePriority),
+		})
+	}
+	if chainsWithRules[constants.OutputChain] {
+		tx.Add(&knftables.Chain{
+			Name:     constants.OutputChain,
+			Type:     knftables.PtrTo(knftables.FilterType),
+			Hook:     knftables.PtrTo(knftables.OutputHook),
+			Priority: knftables.PtrTo(knftables.ManglePriority),
+		})
+	}
+	if chainsWithRules[constants.IstioDivertChain] {
+		tx.Add(&knftables.Chain{Name: constants.IstioDivertChain})
+	}
+	if chainsWithRules[constants.IstioTproxyChain] {
+		tx.Add(&knftables.Chain{Name: constants.IstioTproxyChain})
+	}
+	if chainsWithRules[constants.IstioInboundChain] {
+		tx.Add(&knftables.Chain{Name: constants.IstioInboundChain})
+	}
+	if chainsWithRules[constants.IstioDropChain] {
+		tx.Add(&knftables.Chain{Name: constants.IstioDropChain})
+	}
 
 	// we use chainRuleCount to keep track of how many rules have been added to each chain.
 	chainRuleCount := make(map[string]int)
 
-	for _, rule := range cfg.ruleBuilder.Rules[constants.IstioProxyMangleTable] {
+	for _, rule := range rules {
 		chain := rule.Chain
 
 		// In IPtables, inserting a rule at position 1 means it gets placed at the head of the chain. In contrast,
@@ -979,8 +999,9 @@ func (cfg *NftablesConfigurator) addIstioRawTableRules() (*knftables.Transaction
 		return tx, nil
 	}
 
+	rules := cfg.ruleBuilder.Rules[constants.IstioProxyRawTable]
 	// If there are no rules to be added skip creating the associated tables and chains.
-	if len(cfg.ruleBuilder.Rules[constants.IstioProxyRawTable]) == 0 {
+	if len(rules) == 0 {
 		return tx, nil
 	}
 	// Ensure that the table exists.
@@ -988,30 +1009,39 @@ func (cfg *NftablesConfigurator) addIstioRawTableRules() (*knftables.Transaction
 	// Flush the table to remove all existing rules before applying new ones.
 	tx.Flush(&knftables.Table{})
 
-	// Ensure that the chains exist
-	tx.Add(&knftables.Chain{
-		Name:     constants.PreroutingChain,
-		Type:     knftables.PtrTo(knftables.FilterType),
-		Hook:     knftables.PtrTo(knftables.PreroutingHook),
-		Priority: knftables.PtrTo(knftables.RawPriority),
-	})
-	tx.Add(&knftables.Chain{
-		Name:     constants.OutputChain,
-		Type:     knftables.PtrTo(knftables.FilterType),
-		Hook:     knftables.PtrTo(knftables.OutputHook),
-		Priority: knftables.PtrTo(knftables.RawPriority),
-	})
-	tx.Add(&knftables.Chain{
-		Name: constants.IstioInboundChain,
-	})
-	tx.Add(&knftables.Chain{
-		Name: constants.IstioOutputDNSChain,
-	})
+	// Determine which chains have rules and create them.
+	chainsWithRules := make(map[string]bool)
+	for _, rule := range rules {
+		chainsWithRules[rule.Chain] = true
+	}
+
+	if chainsWithRules[constants.PreroutingChain] {
+		tx.Add(&knftables.Chain{
+			Name:     constants.PreroutingChain,
+			Type:     knftables.PtrTo(knftables.FilterType),
+			Hook:     knftables.PtrTo(knftables.PreroutingHook),
+			Priority: knftables.PtrTo(knftables.RawPriority),
+		})
+	}
+	if chainsWithRules[constants.OutputChain] {
+		tx.Add(&knftables.Chain{
+			Name:     constants.OutputChain,
+			Type:     knftables.PtrTo(knftables.FilterType),
+			Hook:     knftables.PtrTo(knftables.OutputHook),
+			Priority: knftables.PtrTo(knftables.RawPriority),
+		})
+	}
+	if chainsWithRules[constants.IstioInboundChain] {
+		tx.Add(&knftables.Chain{Name: constants.IstioInboundChain})
+	}
+	if chainsWithRules[constants.IstioOutputDNSChain] {
+		tx.Add(&knftables.Chain{Name: constants.IstioOutputDNSChain})
+	}
 
 	// we use chainRuleCount to keep track of how many rules have been added to each chain.
 	chainRuleCount := make(map[string]int)
 
-	for _, rule := range cfg.ruleBuilder.Rules[constants.IstioProxyRawTable] {
+	for _, rule := range rules {
 		chain := rule.Chain
 
 		// In IPtables, inserting a rule at position 1 means it gets placed at the head of the chain. In contrast,
