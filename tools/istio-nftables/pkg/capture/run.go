@@ -913,9 +913,26 @@ func (cfg *NftablesConfigurator) addIstioMangleTableRules() (*knftables.Transact
 		Name: constants.IstioDropChain,
 	})
 
-	// Add the necessary rules.
+	// we use chainRuleCount to keep track of how many rules have been added to each chain.
+	chainRuleCount := make(map[string]int)
+
 	for _, rule := range cfg.ruleBuilder.Rules[constants.IstioProxyMangleTable] {
+		chain := rule.Chain
+
+		// In IPtables, inserting a rule at position 1 means it gets placed at the head of the chain. In contrast,
+		// nftables starts rule indexing at 0. However, nftables doesn't allow inserting a rule at index 0 if the
+		// chain is empty. So to handle this case, we check if the chain is empty, and if it is, we use appendRule instead.
+		if rule.Index != nil && chainRuleCount[chain] == 0 {
+			rule.Index = nil
+		}
+
+		// When a rule includes the Index, its considered as an Insert request.
+		if rule.Index != nil {
+			tx.Insert(&rule)
+		} else {
 		tx.Add(&rule)
+		}
+		chainRuleCount[chain]++
 	}
 
 	// Apply changes in this transaction
@@ -960,9 +977,26 @@ func (cfg *NftablesConfigurator) addIstioRawTableRules() (*knftables.Transaction
 		Name: constants.IstioOutputDNSChain,
 	})
 
-	// Add the necessary rules.
+	// we use chainRuleCount to keep track of how many rules have been added to each chain.
+	chainRuleCount := make(map[string]int)
+
 	for _, rule := range cfg.ruleBuilder.Rules[constants.IstioProxyRawTable] {
+		chain := rule.Chain
+
+		// In IPtables, inserting a rule at position 1 means it gets placed at the head of the chain. In contrast,
+		// nftables starts rule indexing at 0. However, nftables doesn't allow inserting a rule at index 0 if the
+		// chain is empty. So to handle this case, we check if the chain is empty, and if it is, we use appendRule instead.
+		if rule.Index != nil && chainRuleCount[chain] == 0 {
+			rule.Index = nil
+		}
+
+		// When a rule includes the Index, its considered as an Insert request.
+		if rule.Index != nil {
+			tx.Insert(&rule)
+		} else {
 		tx.Add(&rule)
+		}
+		chainRuleCount[chain]++
 	}
 
 	// Apply changes in this transaction
