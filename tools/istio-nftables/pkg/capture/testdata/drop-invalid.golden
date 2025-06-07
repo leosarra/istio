@@ -26,5 +26,5 @@ add chain inet istio-proxy-mangle istio-divert
 add chain inet istio-proxy-mangle istio-tproxy
 add chain inet istio-proxy-mangle istio-inbound
 add chain inet istio-proxy-mangle ISTIO_DROP
-add rule inet istio-proxy-mangle prerouting meta l4proto tcp ct state INVALID jump ISTIO_DROP
+add rule inet istio-proxy-mangle prerouting meta l4proto tcp ct state invalid jump ISTIO_DROP
 add rule inet istio-proxy-mangle ISTIO_DROP drop
