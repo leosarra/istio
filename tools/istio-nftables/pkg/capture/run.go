@@ -811,8 +811,22 @@ func (cfg *NftablesConfigurator) addIstioNatTableRules() (*knftables.Transaction
 
 	tx := nft.NewTransaction()
 
+	if cfg.cfg.CleanupOnly {
+		// Delete the table
+		tx.Delete(&knftables.Table{})
+		nft.Run(context.TODO(), tx)
+		return tx, nil
+	}
+
+	// If there are no rules to be added skip creating the associated tables and chains.
+	if len(cfg.ruleBuilder.Rules[constants.IstioProxyNatTable]) == 0 {
+		return tx, nil
+	}
+
 	// Ensure that the table exists.
 	tx.Add(&knftables.Table{})
+	// Flush the table to remove all existing rules before applying new ones.
+	tx.Flush(&knftables.Table{})
 
 	// Ensure that the chains exist
 	tx.Add(&knftables.Chain{
@@ -872,11 +886,6 @@ func (cfg *NftablesConfigurator) addIstioNatTableRules() (*knftables.Transaction
 // addIstioMangleTableRules adds nftables rules to the IstioProxyMangleTable table for Istio proxy.
 // It makes sure the table and the necessary chains exist, then adds rules from the rule builder.
 func (cfg *NftablesConfigurator) addIstioMangleTableRules() (*knftables.Transaction, error) {
-	// If there are no rules to be added to the IstioProxyMangleTable, skip creating the associated tables and chains.
-	if len(cfg.ruleBuilder.Rules[constants.IstioProxyMangleTable]) == 0 {
-		return nil, nil
-	}
-
 	nft, err := cfg.nftProvider(constants.IstioProxyMangleTable)
 	if err != nil {
 		return nil, err
@@ -884,8 +893,22 @@ func (cfg *NftablesConfigurator) addIstioMangleTableRules() (*knftables.Transact
 
 	tx := nft.NewTransaction()
 
+	if cfg.cfg.CleanupOnly {
+		// Delete the table
+		tx.Delete(&knftables.Table{})
+		nft.Run(context.TODO(), tx)
+		return tx, nil
+	}
+
+	// If there are no rules to be added skip creating the associated tables and chains.
+	if len(cfg.ruleBuilder.Rules[constants.IstioProxyMangleTable]) == 0 {
+		return tx, nil
+	}
+
 	// Ensure that the table exists.
 	tx.Add(&knftables.Table{})
+	// Flush the table to remove all existing rules before applying new ones.
+	tx.Flush(&knftables.Table{})
 
 	// Ensure that the chains exist
 	tx.Add(&knftables.Chain{
@@ -930,7 +953,7 @@ func (cfg *NftablesConfigurator) addIstioMangleTableRules() (*knftables.Transact
 		if rule.Index != nil {
 			tx.Insert(&rule)
 		} else {
-		tx.Add(&rule)
+			tx.Add(&rule)
 		}
 		chainRuleCount[chain]++
 	}
@@ -942,11 +965,6 @@ func (cfg *NftablesConfigurator) addIstioMangleTableRules() (*knftables.Transact
 // addIstioRawTableRules adds nftables rules to the IstioProxyRawTable table for Istio proxy.
 // It makes sure the table and the necessary chains exist, then adds rules from the rule builder.
 func (cfg *NftablesConfigurator) addIstioRawTableRules() (*knftables.Transaction, error) {
-	// If there are no rules to be added to the IstioProxyRawTable, skip creating the associated tables and chains.
-	if len(cfg.ruleBuilder.Rules[constants.IstioProxyRawTable]) == 0 {
-		return nil, nil
-	}
-
 	nft, err := cfg.nftProvider(constants.IstioProxyRawTable)
 	if err != nil {
 		return nil, err
@@ -954,8 +972,21 @@ func (cfg *NftablesConfigurator) addIstioRawTableRules() (*knftables.Transaction
 
 	tx := nft.NewTransaction()
 
+	if cfg.cfg.CleanupOnly {
+		// Delete the table
+		tx.Delete(&knftables.Table{})
+		nft.Run(context.TODO(), tx)
+		return tx, nil
+	}
+
+	// If there are no rules to be added skip creating the associated tables and chains.
+	if len(cfg.ruleBuilder.Rules[constants.IstioProxyRawTable]) == 0 {
+		return tx, nil
+	}
 	// Ensure that the table exists.
 	tx.Add(&knftables.Table{})
+	// Flush the table to remove all existing rules before applying new ones.
+	tx.Flush(&knftables.Table{})
 
 	// Ensure that the chains exist
 	tx.Add(&knftables.Chain{
@@ -994,7 +1025,7 @@ func (cfg *NftablesConfigurator) addIstioRawTableRules() (*knftables.Transaction
 		if rule.Index != nil {
 			tx.Insert(&rule)
 		} else {
-		tx.Add(&rule)
+			tx.Add(&rule)
 		}
 		chainRuleCount[chain]++
 	}
