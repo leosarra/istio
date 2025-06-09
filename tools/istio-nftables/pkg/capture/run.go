@@ -814,7 +814,7 @@ func (cfg *NftablesConfigurator) addIstioNatTableRules() (*knftables.Transaction
 	if cfg.cfg.CleanupOnly {
 		// Delete the table
 		tx.Delete(&knftables.Table{})
-		nft.Run(context.TODO(), tx)
+		_ = nft.Run(context.TODO(), tx)
 		return tx, nil
 	}
 
@@ -906,7 +906,7 @@ func (cfg *NftablesConfigurator) addIstioMangleTableRules() (*knftables.Transact
 	if cfg.cfg.CleanupOnly {
 		// Delete the table
 		tx.Delete(&knftables.Table{})
-		nft.Run(context.TODO(), tx)
+		_ = nft.Run(context.TODO(), tx)
 		return tx, nil
 	}
 
@@ -995,7 +995,7 @@ func (cfg *NftablesConfigurator) addIstioRawTableRules() (*knftables.Transaction
 	if cfg.cfg.CleanupOnly {
 		// Delete the table
 		tx.Delete(&knftables.Table{})
-		nft.Run(context.TODO(), tx)
+		_ = nft.Run(context.TODO(), tx)
 		return tx, nil
 	}
 
