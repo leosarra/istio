@@ -296,7 +296,6 @@ func TestNftables(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-
 			// Collect the output/dump from all tables
 			var dumps []string
 			for _, table := range []string{
@@ -305,9 +304,11 @@ func TestNftables(t *testing.T) {
 				constants.IstioProxyRawTable,
 			} {
 				if mock, exists := mocks[table]; exists {
-					dump := mock.Dump(tableTx[table])
-					if dump != "" {
-						dumps = append(dumps, dump)
+					if tx, exists := tableTx[table]; exists {
+						dump := mock.Dump(tx)
+						if dump != "" {
+							dumps = append(dumps, dump)
+						}
 					}
 				}
 			}

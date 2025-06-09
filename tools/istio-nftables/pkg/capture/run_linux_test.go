@@ -22,10 +22,9 @@ import (
 
 	// Create a new network namespace. This will have the 'lo' interface ready but nothing else.
 	_ "github.com/howardjohn/unshare-go/netns"
-	"sigs.k8s.io/knftables"
-
 	// Create a new user namespace. This will map the current UID/GID to 0.
 	"github.com/howardjohn/unshare-go/userns"
+	"sigs.k8s.io/knftables"
 
 	"istio.io/istio/pkg/test/util/assert"
 )
@@ -48,7 +47,6 @@ func TestIdempotentEquivalentRerun(t *testing.T) {
 	setup(t)
 	commonCases := getCommonTestCases()
 	for _, tt := range commonCases {
-
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := constructTestConfig()
 			tt.config(cfg)
@@ -70,8 +68,7 @@ func TestIdempotentEquivalentRerun(t *testing.T) {
 				assert.NoError(t, err)
 				_, err = cleanupConfigurator.Run()
 				assert.NoError(t, err)
-				cleanedDump := dumpRuleset(t)
-				assert.Equal(t, cleanedDump, "", "nftables should be clean after cleanup")
+				assert.Equal(t, dumpRuleset(t), "", "nftables should be clean after cleanup")
 			}()
 
 			// First pass
@@ -80,13 +77,18 @@ func TestIdempotentEquivalentRerun(t *testing.T) {
 			_, err = firstPassConfigurator.Run()
 			assert.NoError(t, err)
 			firstPassDump := dumpRuleset(t)
+			if firstPassDump == "" {
+				t.Fatalf("First pass configuration resulted in an empty nftables ruleset dump")
+			}
 			// Second Pass
 			secondPassConfigurator, err := NewNftablesConfigurator(cfg, nftProvider)
 			assert.NoError(t, err)
 			_, err = secondPassConfigurator.Run()
 			assert.NoError(t, err)
 			secondPassDump := dumpRuleset(t)
-
+			if secondPassDump == "" {
+				t.Fatalf("Second pass configuration resulted in an empty nftables ruleset dump")
+			}
 			// The ruleset should be identical, despite the rerun
 			assert.Equal(t, firstPassDump, secondPassDump, "nftables ruleset should be identical after a second run")
 		})

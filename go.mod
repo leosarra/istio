@@ -2,6 +2,8 @@ module istio.io/istio
 
 go 1.24.0
 
+replace sigs.k8s.io/knftables => github.com/leosarra/knftables v0.0.0-20250610102117-c3b07ee09756
+
 require (
 	cloud.google.com/go/compute/metadata v0.6.0
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20240806141605-e8a1dd7889d6
