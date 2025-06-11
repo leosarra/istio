@@ -41,6 +41,7 @@ func (r *RealNftables) Dump(tx *knftables.Transaction) string {
 // NewRealNftables creates and returns a RealNftables object.
 // It sets up the actual knftables interface for the given family and table.
 func NewRealNftables(family knftables.Family, table string) (*RealNftables, error) {
+	// Otherwise, create a standard interface for the specified family and table.
 	nft, err := knftables.New(family, table)
 	if err != nil {
 		return nil, err

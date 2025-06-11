@@ -41,9 +41,11 @@ func compareToGolden(t *testing.T, name string, actual string) {
 func buildRules(t *testing.T, builder *NftablesRuleBuilder) string {
 	nft := knftables.NewFake(knftables.InetFamily, testTable)
 	tx := nft.NewTransaction()
-	tx.Add(&knftables.Table{})
+	tx.Add(&knftables.Table{Name: testTable, Family: knftables.InetFamily})
 	tx.Add(&knftables.Chain{
-		Name: testChain,
+		Name:   testChain,
+		Table:  testTable,
+		Family: knftables.InetFamily,
 	})
 
 	// we use chainRuleCount to keep track of how many rules have been added to each chain.
