@@ -1048,6 +1048,28 @@ var testGrid = []testCase{
 		analyzer:       &serviceentry.ProtocolAddressesAnalyzer{},
 		expected:       []message{},
 	},
+	{
+		name: "ServiceEntry Addresses Auto-Allocated with disabled DNS proxying",
+		inputFiles: []string{
+			"testdata/serviceentry-missing-addresses-protocol.yaml",
+		},
+		meshConfigFile: "testdata/meshconfig-ip-autoallocate.yaml",
+		analyzer:       &serviceentry.ProtocolAddressesAnalyzer{},
+		expected:       []message{},
+	},
+	{
+		name: "ServiceEntry Addresses Auto-Allocated Disabled",
+		inputFiles: []string{
+			"testdata/serviceentry-missing-addresses-protocol.yaml",
+		},
+		meshConfigFile: "testdata/meshconfig-ip-autoallocate-disabled.yaml",
+		analyzer:       &serviceentry.ProtocolAddressesAnalyzer{},
+		expected: []message{
+			{msg.ServiceEntryAddressesRequired, "ServiceEntry default/service-entry-test-03"},
+			{msg.ServiceEntryAddressesRequired, "ServiceEntry default/service-entry-test-04"},
+			{msg.ServiceEntryAddressesRequired, "ServiceEntry default/service-entry-test-07"},
+		},
+	},
 }
 
 // regex patterns for analyzer names that should be explicitly ignored for testing

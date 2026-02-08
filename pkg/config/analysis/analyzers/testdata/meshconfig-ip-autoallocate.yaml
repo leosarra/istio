@@ -1,0 +1,4 @@
+defaultConfig:
+  proxyMetadata:
+    ISTIO_META_DNS_CAPTURE: "false"
+    PILOT_ENABLE_IP_AUTOALLOCATE: "true"
